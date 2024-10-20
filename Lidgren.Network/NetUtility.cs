@@ -55,7 +55,7 @@ namespace Lidgren.Network
 		/// </summary>
 		public static void ResolveAsync(string ipOrHost, int port, ResolveEndPointCallback callback)
 		{
-			ResolveAsync(ipOrHost, delegate(NetAddress adr)
+			ResolveAsync(ipOrHost, delegate (NetAddress adr)
 			{
 				if (adr == null)
 				{
@@ -110,7 +110,7 @@ namespace Lidgren.Network
 			IPHostEntry entry;
 			try
 			{
-				Dns.BeginGetHostEntry(ipOrHost, delegate(IAsyncResult result)
+				Dns.BeginGetHostEntry(ipOrHost, delegate (IAsyncResult result)
 				{
 					try
 					{
@@ -163,7 +163,7 @@ namespace Lidgren.Network
 			}
 		}
 
-        /// <summary>
+		/// <summary>
 		/// Get IPv4 address from notation (xxx.xxx.xxx.xxx) or hostname
 		/// </summary>
 		public static NetAddress Resolve(string ipOrHost)
@@ -451,7 +451,7 @@ namespace Lidgren.Network
 		{
 			var cnt = list.Count;
 			StringBuilder bdr = new StringBuilder(cnt * 5); // educated guess
-			for(int i=0;i<cnt;i++)
+			for (int i = 0; i < cnt; i++)
 			{
 				bdr.Append(list[i].ToString());
 				if (i != cnt - 1)
@@ -466,28 +466,28 @@ namespace Lidgren.Network
 			return ComputeSHAHash(bytes, 0, bytes.Length);
 		}
 
-        /// <summary>
-        /// Copies from <paramref name="src"/> to <paramref name="dst"/>. Maps to an IPv6 address
-        /// </summary>
-        /// <param name="src">Source.</param>
-        /// <param name="dst">Destination.</param>
-        internal static void CopyEndpoint(IPEndPoint src, IPEndPoint dst)
-        {
-            dst.Port = src.Port;
-            if (src.AddressFamily == AddressFamily.InterNetwork)
-                dst.Address = src.Address.MapToIPv6();
-            else
-                dst.Address = src.Address;
-        }
+		/// <summary>
+		/// Copies from <paramref name="src"/> to <paramref name="dst"/>. Maps to an IPv6 address
+		/// </summary>
+		/// <param name="src">Source.</param>
+		/// <param name="dst">Destination.</param>
+		internal static void CopyEndpoint(IPEndPoint src, IPEndPoint dst)
+		{
+			dst.Port = src.Port;
+			if (src.AddressFamily == AddressFamily.InterNetwork)
+				dst.Address = src.Address.MapToIPv6();
+			else
+				dst.Address = src.Address;
+		}
 
-        /// <summary>
-        /// Maps the IPEndPoint object to an IPv6 address. Has allocation
-        /// </summary>
-        internal static IPEndPoint MapToIPv6(IPEndPoint endPoint)
-        {
-            if (endPoint.AddressFamily == AddressFamily.InterNetwork)
-                return new IPEndPoint(endPoint.Address.MapToIPv6(), endPoint.Port);
-            return endPoint;
-        }
-    }
+		/// <summary>
+		/// Maps the IPEndPoint object to an IPv6 address. Has allocation
+		/// </summary>
+		internal static IPEndPoint MapToIPv6(IPEndPoint endPoint)
+		{
+			if (endPoint.AddressFamily == AddressFamily.InterNetwork)
+				return new IPEndPoint(endPoint.Address.MapToIPv6(), endPoint.Port);
+			return endPoint;
+		}
+	}
 }

@@ -35,15 +35,19 @@ namespace Lidgren.Network
 		{
 			int unEncLenBits = msg.LengthBits;
 
-			var ms = new MemoryStream();
-			var cs = new CryptoStream(ms, m_algorithm.CreateEncryptor(), CryptoStreamMode.Write);
-			cs.Write(msg.m_data, 0, msg.LengthBytes);
-			cs.Close();
+			byte[] arr;
+			using (var ms = new MemoryStream())
+			{
+				using (var cs = new CryptoStream(ms, m_algorithm.CreateEncryptor(), CryptoStreamMode.Write))
+				{
+					cs.Write(msg.m_data, 0, msg.LengthBytes);
+					cs.Close();
+				}
 
-			// get results
-			var arr = ms.ToArray();
-			ms.Close();
-
+				// get results
+				arr = ms.ToArray();
+			}
+			
 			msg.EnsureBufferSize((arr.Length + 4) * 8);
 			msg.LengthBits = 0; // reset write pointer
 			msg.Write((uint)unEncLenBits);
@@ -56,20 +60,37 @@ namespace Lidgren.Network
 		public override bool Decrypt(NetIncomingMessage msg)
 		{
 			int unEncLenBits = (int)msg.ReadUInt32();
+			int originalByteLength = NetUtility.BytesToHoldBits(unEncLenBits);
 
-			var ms = new MemoryStream(msg.m_data, 4, msg.LengthBytes - 4);
-			var cs = new CryptoStream(ms, m_algorithm.CreateDecryptor(), CryptoStreamMode.Read);
+			var result = m_peer.GetStorage(originalByteLength);
+			try
+			{
+				using var ms = new MemoryStream(msg.m_data, 4, msg.LengthBytes - 4);
+				using var cs = new CryptoStream(ms, m_algorithm.CreateDecryptor(), CryptoStreamMode.Read);
 
-			var byteLen = NetUtility.BytesToHoldBits(unEncLenBits);
-			var result = m_peer.GetStorage(byteLen);
-			cs.Read(result, 0, byteLen);
-			cs.Close();
+				int bytesRead = 0;
+				while (bytesRead < originalByteLength)
+				{
+					int read = cs.Read(result, bytesRead, originalByteLength - bytesRead);
+					if (read <= 0)
+						break;
+					bytesRead += read;
+				}
 
-			// TODO: recycle existing msg
+				if (bytesRead < originalByteLength)
+				{
+					Array.Resize(ref result, bytesRead);
+				}
 
-			msg.m_data = result;
-			msg.m_bitLength = unEncLenBits;
-			msg.m_readPosition = 0;
+				msg.m_data = result;
+				msg.m_bitLength = unEncLenBits;
+				msg.m_readPosition = 0;
+			}
+			catch 
+			{
+				m_peer.Recycle(result);
+				throw;
+			}
 
 			return true;
 		}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Text;
 
@@ -37,7 +38,7 @@ namespace Lidgren.Network
 		internal byte[] GetStorage(int minimumCapacityInBytes)
 		{
 			if (m_storagePool == null)
-				return new byte[minimumCapacityInBytes];
+				return ArrayPool<byte>.Shared.Rent(minimumCapacityInBytes); //new byte[minimumCapacityInBytes];
 
 			lock (m_storagePool)
 			{
@@ -53,14 +54,18 @@ namespace Lidgren.Network
 					}
 				}
 			}
+
 			m_statistics.m_bytesAllocated += minimumCapacityInBytes;
-			return new byte[minimumCapacityInBytes];
+			return ArrayPool<byte>.Shared.Rent(minimumCapacityInBytes); //new byte[minimumCapacityInBytes];
 		}
 
 		internal void Recycle(byte[] storage)
 		{
 			if (m_storagePool == null || storage == null)
+			{
+				ArrayPool<byte>.Shared.Return(storage);
 				return;
+			}
 
 			lock (m_storagePool)
 			{
@@ -83,7 +88,7 @@ namespace Lidgren.Network
 
 					m_storagePoolBytes -= m_storagePool[idx].Length;
 					m_storagePoolBytes += storage.Length;
-					
+
 					m_storagePool[idx] = storage; // replace
 				}
 				else
@@ -106,23 +111,23 @@ namespace Lidgren.Network
 		/// <summary>
 		/// Creates a new message for sending and writes the provided string to it
 		/// </summary>
-	        public NetOutgoingMessage CreateMessage(string content)
-	        {
-	            NetOutgoingMessage om;
-	
-	            // Since this could be null.
-	            if (string.IsNullOrEmpty(content))
-	            {
-	                om = CreateMessage(1); // One byte for the internal variable-length zero byte.
-	            }
-	            else
-	            {
-	                om = CreateMessage(2 + content.Length); // Fair guess.
-	            }
-	
-	            om.Write(content);
-	            return om;
-	        }
+		public NetOutgoingMessage CreateMessage(string content)
+		{
+			NetOutgoingMessage om;
+
+			// Since this could be null.
+			if (string.IsNullOrEmpty(content))
+			{
+				om = CreateMessage(1); // One byte for the internal variable-length zero byte.
+			}
+			else
+			{
+				om = CreateMessage(2 + content.Length); // Fair guess.
+			}
+
+			om.Write(content);
+			return om;
+		}
 
 		/// <summary>
 		/// Creates a new message for sending

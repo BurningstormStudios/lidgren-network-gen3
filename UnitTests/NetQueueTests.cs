@@ -1,85 +1,85 @@
-﻿using System;
-using System.Collections.Generic;
-using Lidgren.Network;
+﻿using Lidgren.Network;
+using Xunit;
 
 namespace UnitTests
 {
-	public static class NetQueueTests
+	public class NetQueueTests : BaseTest
 	{
-		public static void Run()
+		[Fact]
+		public void NetQueue_EnqueueAndToArray_ShouldReturnCorrectArray()
 		{
-			NetQueue<int> queue = new NetQueue<int>(4);
+			var queue = new NetQueue<int>(4);
 
 			queue.Enqueue(1);
 			queue.Enqueue(2);
 			queue.Enqueue(3);
 
 			int[] arr = queue.ToArray();
-			if (arr.Length != 3)
-				throw new Exception("NetQueue.ToArray failure");
-			if (arr[0] != 1 || arr[1] != 2 || arr[2] != 3)
-				throw new Exception("NetQueue.ToArray failure");
 
-			bool ok;
-			int a;
+			Assert.Equal(3, arr.Length);
+			Assert.Equal(1, arr[0]);
+			Assert.Equal(2, arr[1]);
+			Assert.Equal(3, arr[2]);
+		}
 
-			if (queue.Contains(4))
-				throw new Exception("NetQueue Contains failure");
+		[Fact]
+		public void NetQueue_Contains_ShouldReturnCorrectResults()
+		{
+			var queue = new NetQueue<int>(4);
+			queue.Enqueue(1);
+			queue.Enqueue(2);
+			queue.Enqueue(3);
 
-			if (!queue.Contains(2))
-				throw new Exception("NetQueue Contains failure 2");
+			Assert.False(queue.Contains(4), "NetQueue.Contains should return false for an absent item.");
+			Assert.True(queue.Contains(2), "NetQueue.Contains should return true for a present item.");
+		}
 
-			if (queue.Count != 3)
-				throw new Exception("NetQueue failed");
+		[Fact]
+		public void NetQueue_TryDequeue_ShouldReturnCorrectResults()
+		{
+			var queue = new NetQueue<int>(4);
+			queue.Enqueue(1);
+			queue.Enqueue(2);
+			queue.Enqueue(3);
 
-			ok = queue.TryDequeue(out a);
-			if (ok == false || a != 1)
-				throw new Exception("NetQueue failure");
+			Assert.Equal(3, queue.Count);
 
-			if (queue.Count != 2)
-				throw new Exception("NetQueue failed");
+			Assert.True(queue.TryDequeue(out int a));
+			Assert.Equal(1, a);
+			Assert.Equal(2, queue.Count);
 
 			queue.EnqueueFirst(42);
-			if (queue.Count != 3)
-				throw new Exception("NetQueue failed");
+			Assert.Equal(3, queue.Count);
 
-			ok = queue.TryDequeue(out a);
-			if (ok == false || a != 42)
-				throw new Exception("NetQueue failed");
+			Assert.True(queue.TryDequeue(out a));
+			Assert.Equal(42, a);
 
-			ok = queue.TryDequeue(out a);
-			if (ok == false || a != 2)
-				throw new Exception("NetQueue failed");
-	
-			ok = queue.TryDequeue(out a);
-			if (ok == false || a != 3)
-				throw new Exception("NetQueue failed");
+			Assert.True(queue.TryDequeue(out a));
+			Assert.Equal(2, a);
 
-			ok = queue.TryDequeue(out a);
-			if (ok == true)
-				throw new Exception("NetQueue failed");
+			Assert.True(queue.TryDequeue(out a));
+			Assert.Equal(3, a);
 
-			ok = queue.TryDequeue(out a);
-			if (ok == true)
-				throw new Exception("NetQueue failed");
+			Assert.False(queue.TryDequeue(out a));
+			Assert.False(queue.TryDequeue(out a));
+		}
 
+		[Fact]
+		public void NetQueue_Clear_ShouldEmptyTheQueue()
+		{
+			var queue = new NetQueue<int>(4);
 			queue.Enqueue(78);
-			if (queue.Count != 1)
-				throw new Exception("NetQueue failed");
 
-			ok = queue.TryDequeue(out a);
-			if (ok == false || a != 78)
-				throw new Exception("NetQueue failed");
+			Assert.Equal(1, queue.Count);
+
+			Assert.True(queue.TryDequeue(out int a));
+			Assert.Equal(78, a);
 
 			queue.Clear();
-			if (queue.Count != 0)
-				throw new Exception("NetQueue.Clear failed");
+			Assert.Equal(0, queue.Count);
 
 			int[] arr2 = queue.ToArray();
-			if (arr2.Length != 0)
-				throw new Exception("NetQueue.ToArray failure");
-
-			Console.WriteLine("NetQueue tests OK");
+			Assert.Empty(arr2);
 		}
 	}
 }

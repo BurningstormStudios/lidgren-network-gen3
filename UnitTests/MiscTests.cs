@@ -1,29 +1,38 @@
-﻿using System;
-
-using Lidgren.Network;
+﻿using Lidgren.Network;
+using Xunit;
 
 namespace UnitTests
 {
-	public static class MiscTests
+	public class MiscTests : BaseTest
 	{
-		public static void Run(NetPeer peer)
+		[Fact]
+		public void Misc_NetPeerConfiguration_ShouldEnableAndDisableMessageTypesCorrectly()
 		{
-			NetPeerConfiguration config = new NetPeerConfiguration("Test");
+			var config = new NetPeerConfiguration("Test");
 
+			// Enable a message type and check if it's enabled
 			config.EnableMessageType(NetIncomingMessageType.UnconnectedData);
-			if (config.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData) == false)
-				throw new NetException("setting enabled message types failed");
+			Assert.True(config.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData),
+									"Failed to enable message type.");
 
+			// Disable the message type and check if it's disabled
 			config.SetMessageTypeEnabled(NetIncomingMessageType.UnconnectedData, false);
-			if (config.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData) == true)
-				throw new NetException("setting enabled message types failed");
+			Assert.False(config.IsMessageTypeEnabled(NetIncomingMessageType.UnconnectedData),
+									 "Failed to disable message type.");
+		}
 
-			Console.WriteLine("Misc tests OK");
-			
-			Console.WriteLine("Hex test: " + NetUtility.ToHexString(new byte[]{0xDE,0xAD,0xBE,0xEF}));
+		[Fact]
+		public void Misc_NetUtility_ShouldConvertToHexStringCorrectly()
+		{
+			var hexString = NetUtility.ToHexString(new byte[] { 0xDE, 0xAD, 0xBE, 0xEF });
+			Assert.Equal("DEADBEEF", hexString);
+		}
 
-			if (NetUtility.BitsToHoldUInt64((ulong)UInt32.MaxValue + 1ul) != 33)
-				throw new NetException("BitsToHoldUInt64 failed");
+		[Fact]
+		public void Misc_NetUtility_ShouldCalculateBitsToHoldUInt64Correctly()
+		{
+			var bits = NetUtility.BitsToHoldUInt64((ulong)UInt32.MaxValue + 1ul);
+			Assert.Equal(33, bits);
 		}
 	}
 }

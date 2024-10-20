@@ -12,13 +12,13 @@ namespace Lidgren.Network
 		}
 
 		public NetRC2Encryption(NetPeer peer, string key)
-			: base(peer, RC2.Create())
+			: this(peer)
 		{
 			SetKey(key);
 		}
 
 		public NetRC2Encryption(NetPeer peer, byte[] data, int offset, int count)
-			: base(peer, RC2.Create())
+			: this(peer)
 		{
 			SetKey(data, offset, count);
 		}

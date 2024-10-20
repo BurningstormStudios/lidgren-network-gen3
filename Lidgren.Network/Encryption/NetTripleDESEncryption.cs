@@ -12,13 +12,13 @@ namespace Lidgren.Network
 		}
 
 		public NetTripleDESEncryption(NetPeer peer, string key)
-			: base(peer, TripleDES.Create())
+			: this(peer)
 		{
 			SetKey(key);
 		}
 
 		public NetTripleDESEncryption(NetPeer peer, byte[] data, int offset, int count)
-			: base(peer, TripleDES.Create())
+			: this(peer)
 		{
 			SetKey(data, offset, count);
 		}

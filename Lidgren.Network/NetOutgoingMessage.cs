@@ -26,7 +26,7 @@ namespace Lidgren.Network
 	/// Outgoing message used to send data to remote peer(s)
 	/// </summary>
 	[DebuggerDisplay("LengthBits={LengthBits}")]
-	public sealed class NetOutgoingMessage : NetBuffer
+	public sealed class NetOutgoingMessage : NetBuffer, INetOutgoingMessage
 	{
 		internal NetMessageType m_messageType;
 		internal bool m_isSent;
